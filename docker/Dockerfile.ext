@@ -1,0 +1,34 @@
+# Extension
+FROM isaac-lab-base AS isaaclab_ext
+
+# Path to the Extension direcotry
+ARG EXTENSION_PATH_ARG
+ENV EXTENSION_PATH=${EXTENSION_PATH_ARG}
+
+# Install dependencies
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && apt-get install -y --no-install-recommends \
+    autoconf \
+    automake \
+    git-core \
+    libaom-dev \
+    libnuma-dev \
+    libopus-dev \
+    libtool \
+    libvorbis-dev \
+    meson \
+    nasm \
+    ninja-build \
+    pkg-config \
+    texinfo \
+    wget \
+    yasm \
+    zlib1g-dev
+
+# Upgrade pip
+RUN --mount=type=cache,target=/var/cache/pip \
+    ${ISAACLAB_PATH}/_isaac_sim/python.sh -m pip install --upgrade pip
+
+# make working directory as the EXP directory
+# this is the default directory when the container is run
+WORKDIR ${EXTENSION_PATH}
