@@ -50,3 +50,25 @@ def terrain_out_of_bounds(
         return torch.logical_or(x_out_of_bounds, y_out_of_bounds)
     else:
         raise ValueError("Received unsupported terrain type, must be either 'plane' or 'generator'.")
+    
+def roll_exceed(env: ManagerBasedRLEnv, roll_threshold: float, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Terminate when the roll of the robot exceeds a certain threshold.
+
+    This is used to prevent the robot from rolling over.
+    """
+    # extract the used quantities (to enable type-hinting)
+    asset: RigidObject = env.scene[asset_cfg.name]
+    # compute the roll
+    roll = asset.data.root_ang_vel_b[:, 0]
+    return torch.abs(roll) > roll_threshold
+
+def pitch_exceed(env: ManagerBasedRLEnv, pitch_threshold: float, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Terminate when the pitch of the robot exceeds a certain threshold.
+
+    This is used to prevent the robot from pitching over.
+    """
+    # extract the used quantities (to enable type-hinting)
+    asset: RigidObject = env.scene[asset_cfg.name]
+    # compute the pitch
+    pitch = asset.data.root_ang_vel_b[:, 1]
+    return torch.abs(pitch) > pitch_threshold

@@ -104,3 +104,76 @@ def track_ang_vel_z_world_exp(
     asset = env.scene[asset_cfg.name]
     ang_vel_error = torch.square(env.command_manager.get_command(command_name)[:, 2] - asset.data.root_ang_vel_w[:, 2])
     return torch.exp(-ang_vel_error / std**2)
+
+def track_lin_vel_x(
+    env: ManagerBasedRLEnv, command_name: str, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+) -> torch.Tensor:
+    """Reward tracking of linear velocity commands (x axes)."""
+    # extract the used quantities (to enable type-hinting)
+    asset = env.scene[asset_cfg.name]
+    # compute the error
+    lin_vel_error = torch.abs(env.command_manager.get_command(command_name)[:, 0] - asset.data.root_lin_vel_b[:, 0])
+    return lin_vel_error
+
+def lin_vel_y(
+    env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+) -> torch.Tensor:
+    """Penalize linear velocity (y axes)."""
+    # extract the used quantities (to enable type-hinting)
+    asset = env.scene[asset_cfg.name]
+    # compute the error
+    lin_vel = torch.square(asset.data.root_lin_vel_b[:, 1])
+    return lin_vel
+
+def ang_vel_z(
+    env, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+) -> torch.Tensor:
+    """Penalize angular velocity (z axes)."""
+    # extract the used quantities (to enable type-hinting)
+    asset = env.scene[asset_cfg.name]
+    ang_vel = torch.square(asset.data.root_ang_vel_w[:, 2])
+    return ang_vel
+
+def energy(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Penalize energy consumption."""
+    # extract the used quantities (to enable type-hinting)
+    asset = env.scene[asset_cfg.name]
+    # compute the energy
+    torque = asset.data.applied_torque[:, asset_cfg.joint_ids]
+    joint_velocity = asset.data.joint_vel[:, asset_cfg.joint_ids]
+    energy_spent = torque * joint_velocity
+    return torch.sum(energy_spent, dim=1)
+
+def survival_bonus(env: ManagerBasedRLEnv, command_name: str) -> torch.Tensor:
+    """Reward for survival."""
+    # no reward for zero command
+    return env.command_manager.get_command(command_name)[:, 0]
+
+def ground_impact(env, sensor_cfg: SceneEntityCfg) -> torch.Tensor:
+    """Penalize ground impact.
+
+    square of f_t - f_t-1
+    """
+    # Penalize ground impact
+
+    # get sensor
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    
+    # get the forces
+    force_current = contact_sensor.data.net_forces_w_history[:, 0, sensor_cfg.body_ids, :]
+    force_previous = contact_sensor.data.net_forces_w_history[:, 1, sensor_cfg.body_ids, :]
+    
+    # get the difference
+    force_diff_squared = torch.sum(torch.square(force_current - force_previous), dim=-1)
+    
+    return torch.sum(force_diff_squared, dim=1)
+
+def smoothness(env, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Penalize smoothness of the robot."""
+    # extract the used quantities (to enable type-hinting)
+    asset = env.scene[asset_cfg.name]
+    # compute the reward
+    torque = asset.data.applied_torque[:, asset_cfg.joint_ids]
+    joint_acc = asset.data.joint_acc[:, asset_cfg.joint_ids]
+    reward = torch.sum(torch.square(joint_vel) + torch.square(joint_acc), dim=1)
+    return reward

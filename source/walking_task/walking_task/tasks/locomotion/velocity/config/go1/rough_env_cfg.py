@@ -5,7 +5,7 @@
 
 from isaaclab.utils import configclass
 
-from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
+from walking_task.tasks.locomotion.velocity.walk_env_cfg import LocomotionWalkRoughEnvCfg
 
 ##
 # Pre-defined configs
@@ -14,13 +14,13 @@ from isaaclab_assets.robots.unitree import UNITREE_GO1_CFG  # isort: skip
 
 
 @configclass
-class UnitreeGo1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+class UnitreeGo1WalkRoughEnvCfg(LocomotionWalkRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
 
         self.scene.robot = UNITREE_GO1_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-        self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/trunk"
+        self.scene.imu.prim_path = "{ENV_REGEX_NS}/Robot/trunk"
         # scale down the terrains because the robot is small
         self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
         self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.06)
@@ -31,9 +31,10 @@ class UnitreeGo1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # event
         self.events.push_robot = None
-        self.events.add_base_mass.params["mass_distribution_params"] = (-1.0, 3.0)
+        self.events.add_base_mass.params["mass_distribution_params"] = (0.0, 5.0)
         self.events.add_base_mass.params["asset_cfg"].body_names = "trunk"
         self.events.base_external_force_torque.params["asset_cfg"].body_names = "trunk"
+        self.events.center_of_mass.params["asset_cfg"].body_names = "trunk"
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
         self.events.reset_base.params = {
             "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-3.14, 3.14)},
@@ -48,20 +49,20 @@ class UnitreeGo1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         }
 
         # rewards
-        self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"
-        self.rewards.feet_air_time.weight = 0.01
-        self.rewards.undesired_contacts = None
-        self.rewards.dof_torques_l2.weight = -0.0002
-        self.rewards.track_lin_vel_xy_exp.weight = 1.5
-        self.rewards.track_ang_vel_z_exp.weight = 0.75
-        self.rewards.dof_acc_l2.weight = -2.5e-7
+        # self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"
+        # self.rewards.feet_air_time.weight = 0.01
+        # self.rewards.undesired_contacts = None
+        # self.rewards.dof_torques_l2.weight = -0.0002
+        # self.rewards.track_lin_vel_xy_exp.weight = 1.5
+        # self.rewards.track_ang_vel_z_exp.weight = 0.75
+        # self.rewards.dof_acc_l2.weight = -2.5e-7
 
         # terminations
-        self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
+        # self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
 
 
 @configclass
-class UnitreeGo1RoughEnvCfg_PLAY(UnitreeGo1RoughEnvCfg):
+class UnitreeGo1WalkRoughEnvCfg_PLAY(UnitreeGo1WalkRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()

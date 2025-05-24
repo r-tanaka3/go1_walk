@@ -5,30 +5,30 @@
 
 from isaaclab.utils import configclass
 
-from .rough_env_cfg import UnitreeGo1RoughEnvCfg
+from .rough_env_cfg import UnitreeGo1WalkRoughEnvCfg
 
 
 @configclass
-class UnitreeGo1FlatEnvCfg(UnitreeGo1RoughEnvCfg):
+class UnitreeGo1WalkFlatEnvCfg(UnitreeGo1WalkRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
 
         # override rewards
-        self.rewards.flat_orientation_l2.weight = -2.5
-        self.rewards.feet_air_time.weight = 0.25
+        # self.rewards.flat_orientation_l2.weight = -2.5
+        # self.rewards.feet_air_time.weight = 0.25
 
         # change terrain to flat
         self.scene.terrain.terrain_type = "plane"
         self.scene.terrain.terrain_generator = None
         # no height scan
-        self.scene.height_scanner = None
-        self.observations.policy.height_scan = None
+        # self.scene.height_scanner = None
+        # self.observations.policy.height_scan = None
         # no terrain curriculum
         self.curriculum.terrain_levels = None
 
 
-class UnitreeGo1FlatEnvCfg_PLAY(UnitreeGo1FlatEnvCfg):
+class UnitreeGo1WalkFlatEnvCfg_PLAY(UnitreeGo1WalkFlatEnvCfg):
     def __post_init__(self) -> None:
         # post init of parent
         super().__post_init__()
