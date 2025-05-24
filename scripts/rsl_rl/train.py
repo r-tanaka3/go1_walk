@@ -65,7 +65,8 @@ from isaaclab_tasks.utils import get_checkpoint_path
 from isaaclab_tasks.utils.hydra import hydra_task_config
 
 # Import extensions to set up environment tasks
-import ext_template.tasks  # noqa: F401
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../source/walking_task")))
+import walking_task.tasks # noqa: F401
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
