@@ -103,7 +103,7 @@ class CommandsCfg:
         heading_command=False,
         debug_vis=True,
         ranges=mdp.UniformVelocityCommandCfg.Ranges(
-            lin_vel_x=(-0.35, 0.35), lin_vel_y=(0.0, 0.0), ang_vel_z=(0.0, 0.0), heading=(-math.pi, math.pi)
+            lin_vel_x=(0, 0.35), lin_vel_y=(0.0, 0.0), ang_vel_z=(0.0, 0.0), heading=(-math.pi, math.pi)
         ),
     )
 
@@ -283,7 +283,10 @@ class TerminationsCfg:
     """Termination terms for the MDP."""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
-    height_drop = DoneTerm(func=mdp.root_height_below_minimum, params={"minimum_height": 0.28})
+    base_contact = DoneTerm(
+        func=mdp.illegal_contact,
+        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base"), "threshold": 1.0},
+    )
     roll_exceed = DoneTerm(func=mdp.roll_exceed, params={"roll_threshold": 0.4})
     pitch_exceed = DoneTerm(func=mdp.pitch_exceed, params={"pitch_threshold": 0.2})
 

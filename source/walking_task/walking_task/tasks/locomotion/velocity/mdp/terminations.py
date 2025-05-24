@@ -59,7 +59,11 @@ def roll_exceed(env: ManagerBasedRLEnv, roll_threshold: float, asset_cfg: SceneE
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     # compute the roll
-    roll = asset.data.root_ang_vel_b[:, 0]
+    sinr_cosp = 2 * (asset.data.root_quat_w[:,0] * asset.data.root_quat_w[:,1] + asset.data.root_quat_w[:,2] * asset.data.root_quat_w[:,3])
+    cosr_cosp = 1 - 2 * (asset.data.root_quat_w[:,1] * asset.data.root_quat_w[:,1] + asset.data.root_quat_w[:, 2] * asset.data.root_quat_w[:,2])
+    roll = torch.atan2(sinr_cosp, cosr_cosp)
+    # print(f"roll: {roll}")
+
     return torch.abs(roll) > roll_threshold
 
 def pitch_exceed(env: ManagerBasedRLEnv, pitch_threshold: float, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
@@ -70,5 +74,7 @@ def pitch_exceed(env: ManagerBasedRLEnv, pitch_threshold: float, asset_cfg: Scen
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     # compute the pitch
-    pitch = asset.data.root_ang_vel_b[:, 1]
+    sinp = 2 * (asset.data.root_quat_w[:,0] * asset.data.root_quat_w[:,2] - asset.data.root_quat_w[:,3] * asset.data.root_quat_w[:,1])
+    cosp = torch.sqrt(1 - sinp * sinp)
+    pitch = torch.atan2(sinp, cosp)
     return torch.abs(pitch) > pitch_threshold

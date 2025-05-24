@@ -58,7 +58,8 @@ class UnitreeGo1WalkRoughEnvCfg(LocomotionWalkRoughEnvCfg):
         # self.rewards.dof_acc_l2.weight = -2.5e-7
 
         # terminations
-        # self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
+        # self.terminations.roll_exceed.params["asset_cfg"].body_names = "trunk"
+        self.terminations.base_contact.params["sensor_cfg"].body_names = "trunk"
 
 
 @configclass
