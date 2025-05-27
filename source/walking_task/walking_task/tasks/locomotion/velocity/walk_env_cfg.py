@@ -244,7 +244,7 @@ class RewardsCfg:
 
     # -- task
     track_lin_vel_x = RewTerm(
-        func=mdp.track_lin_vel_x, weight=-20, params={"command_name": "base_velocity"}
+        func=mdp.track_lin_vel_x, weight=-200, params={"command_name": "base_velocity"}
     )
     lin_vel_y = RewTerm(func=mdp.lin_vel_y, weight=-1.0)
     ang_vel_z = RewTerm(func=mdp.ang_vel_z, weight=-1.0)
@@ -287,8 +287,9 @@ class TerminationsCfg:
         func=mdp.illegal_contact,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base"), "threshold": 1.0},
     )
-    roll_exceed = DoneTerm(func=mdp.roll_exceed, params={"roll_threshold": 0.4})
-    pitch_exceed = DoneTerm(func=mdp.pitch_exceed, params={"pitch_threshold": 0.2})
+    roll_exceed = DoneTerm(func=mdp.roll_exceed, params={"roll_threshold": 1.5})
+    pitch_exceed = DoneTerm(func=mdp.pitch_exceed, params={"pitch_threshold": 1.5})
+    # height_drop = DoneTerm(func=mdp.root_height_below_minimum, params={"minimum_height": 0.5})
 
 @configclass
 class CurriculumCfg:
