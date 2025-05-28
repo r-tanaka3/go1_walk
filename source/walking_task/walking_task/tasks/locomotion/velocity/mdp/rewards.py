@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 def feet_air_time(
-    env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, threshold: float
+    env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg, threshold: float
 ) -> torch.Tensor:
     """Reward long steps taken by the feet using L2-kernel.
 
@@ -31,7 +31,6 @@ def feet_air_time(
     that the robot lifts its feet off the ground and takes steps. The reward is computed as the sum of
     the time for which the feet are in the air.
 
-    If the commands are small (i.e. the agent is not supposed to take a step), then the reward is zero.
     """
     # extract the used quantities (to enable type-hinting)
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
@@ -39,8 +38,6 @@ def feet_air_time(
     first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
     last_air_time = contact_sensor.data.last_air_time[:, sensor_cfg.body_ids]
     reward = torch.sum((last_air_time - threshold) * first_contact, dim=1)
-    # no reward for zero command
-    reward *= torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) > 0.1
     return reward
 
 
@@ -177,3 +174,13 @@ def smoothness(env, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torc
     joint_acc = asset.data.joint_acc[:, asset_cfg.joint_ids]
     reward = torch.sum(torch.square(joint_vel) + torch.square(joint_acc), dim=1)
     return reward
+
+def move_forward_exp(
+    env: ManagerBasedRLEnv, std: float, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+) -> torch.Tensor:
+    """Reward moving forward using exponential kernel."""
+    # extract the used quantities (to enable type-hinting)
+    asset = env.scene[asset_cfg.name]
+    # compute the error
+    lin_vel_error = torch.square(0.3 - asset.data.root_lin_vel_b[:, 0])
+    return torch.exp(-lin_vel_error / std**2)

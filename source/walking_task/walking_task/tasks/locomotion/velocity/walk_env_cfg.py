@@ -17,7 +17,7 @@ from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 from isaaclab.scene import InteractiveSceneCfg
-from isaaclab.sensors import ContactSensorCfg, ImuCfg, RayCasterCfg, patterns
+from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
 from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
@@ -63,19 +63,15 @@ class MySceneWalkCfg(InteractiveSceneCfg):
     # robots
     robot: ArticulationCfg = MISSING
     # sensors
-    # height_scanner = RayCasterCfg(
-    #     prim_path="{ENV_REGEX_NS}/Robot/base",
-    #     offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
-    #     attach_yaw_only=True,
-    #     pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
-    #     debug_vis=False,
-    #     mesh_prim_paths=["/World/ground"],
-    # )
-    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True)
-    imu = ImuCfg(
+    height_scanner = RayCasterCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
-        history_length=3,
+        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
+        attach_yaw_only=True,
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
+        debug_vis=False,
+        mesh_prim_paths=["/World/ground"],
     )
+    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True)
     # lights
     sky_light = AssetBaseCfg(
         prim_path="/World/skyLight",
@@ -85,29 +81,9 @@ class MySceneWalkCfg(InteractiveSceneCfg):
         ),
     )
 
-
 ##
 # MDP settings
 ##
-
-
-@configclass
-class CommandsCfg:
-    """Command specifications for the MDP."""
-
-    base_velocity = mdp.UniformVelocityCommandCfg(
-        asset_name="robot",
-        resampling_time_range=(10.0, 10.0),
-        rel_standing_envs=0.02,
-        rel_heading_envs=1.0,
-        heading_command=False,
-        debug_vis=True,
-        ranges=mdp.UniformVelocityCommandCfg.Ranges(
-            lin_vel_x=(0, 0.35), lin_vel_y=(0.0, 0.0), ang_vel_z=(0.0, 0.0), heading=(-math.pi, math.pi)
-        ),
-    )
-
-
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
@@ -124,14 +100,8 @@ class ObservationsCfg:
         """Observations for policy group."""
 
         # observation terms (order preserved)
-        # current state 30
         joint_pos = ObsTerm(func=mdp.joint_pos, noise=Unoise(n_min=-0.01, n_max=0.01)) #rel?12
         joint_vel = ObsTerm(func=mdp.joint_vel, noise=Unoise(n_min=-1.5, n_max=1.5)) #12
-        imu_ang_vel = ObsTerm(func=mdp.imu_ang_vel, noise=Unoise(n_min=-0.5, n_max=0.5)) #3(2)
-        feet_contact = ObsTerm(func=mdp.feet_contact, params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot"), "threshold": 1.0}) #4
-        # command
-        velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})
-        # previous action 12
         actions = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self):
@@ -152,8 +122,8 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.6, 1.2),
-            "dynamic_friction_range": (0.6, 1.2),
+            "static_friction_range": (0.8, 0.8),
+            "dynamic_friction_range": (0.6, 0.6),
             "restitution_range": (0.0, 0.0),
             "num_buckets": 64,
         },
@@ -164,46 +134,31 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="base"),
-            "mass_distribution_params": (0.0, 5.0),
+            "mass_distribution_params": (-5.0, 5.0),
             "operation": "add",
         },
     )
 
-    center_of_mass = EventTerm(
+    base_com = EventTerm(
         func=mdp.randomize_rigid_body_com,
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="base"),
-            "com_range": {
-                "x": (-0.15, 0.15),
-                "y": (-0.15, 0.15),
-                "z": (-0.15, 0.15),
-            },
+            "com_range": {"x": (-0.05, 0.05), "y": (-0.05, 0.05), "z": (-0.01, 0.01)},
         },
     )
 
-    actuator_gains = EventTerm(
-        func=mdp.randomize_actuator_gains,
-        mode="startup",
-        params={
-            "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "stiffness_distribution_params": (50, 60),
-            "damping_distribution_params": (0.4, 0.8),
-            "operation": "abs",
-        },
-    )
-
-    # reset    # leave as it was
+    # reset
     base_external_force_torque = EventTerm(
         func=mdp.apply_external_force_torque,
         mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="base"),
-            "force_range": (0.0, 0.5),
+            "force_range": (0.0, 0.0),
             "torque_range": (-0.0, 0.0),
         },
     )
-    # leave as it was
+
     reset_base = EventTerm(
         func=mdp.reset_root_state_uniform,
         mode="reset",
@@ -219,7 +174,7 @@ class EventCfg:
             },
         },
     )
-    # leave as it was
+
     reset_robot_joints = EventTerm(
         func=mdp.reset_joints_by_scale,
         mode="reset",
@@ -229,7 +184,7 @@ class EventCfg:
         },
     )
 
-    # interval leave as it was
+    # interval
     push_robot = EventTerm(
         func=mdp.push_by_setting_velocity,
         mode="interval",
@@ -243,39 +198,36 @@ class RewardsCfg:
     """Reward terms for the MDP."""
 
     # -- task
-    track_lin_vel_x = RewTerm(
-        func=mdp.track_lin_vel_x, weight=-200, params={"command_name": "base_velocity"}
+    move_forward = RewTerm(
+        func=mdp.move_forward_exp,
+        weight=1.0,
+        params={
+            "std": math.sqrt(0.25)
+        },
     )
-    lin_vel_y = RewTerm(func=mdp.lin_vel_y, weight=-1.0)
-    ang_vel_z = RewTerm(func=mdp.ang_vel_z, weight=-1.0)
-    energy = RewTerm(func=mdp.energy, weight=-0.04)
-
     # -- penalties
-    ground_impact = RewTerm(func=mdp.ground_impact, weight=-0.02, params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot")})
-    # ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.05)
-    # dof_torques_l2 = RewTerm(func=mdp.joint_torques_l2, weight=-1.0e-5)
-    # dof_acc_l2 = RewTerm(func=mdp.joint_acc_l2, weight=-2.5e-7)
-    action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-0.001)
-    action_mangitude = RewTerm(func=mdp.action_l2, weight=-0.07)
-    joint_speed = RewTerm(func=mdp.joint_vel_l2, weight=-0.002)
-    feet_slide = RewTerm(func=mdp.feet_slide, weight=-2.0, params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot"), "asset_cfg": SceneEntityCfg("robot", body_names=".*foot")})
-    # feet_air_time = RewTerm(
-    #     func=mdp.feet_air_time,
-    #     weight=0.125,
-    #     params={
-    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*foot"),
-    #         "command_name": "base_velocity",
-    #         "threshold": 0.5,
-    #     },
-    # )
-    # undesired_contacts = RewTerm(
-    #     func=mdp.undesired_contacts,
-    #     weight=-1.0,
-    #     params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*THIGH"), "threshold": 1.0},
-    # )
+    lin_vel_z_l2 = RewTerm(func=mdp.lin_vel_z_l2, weight=-2.0)
+    ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.05)
+    dof_torques_l2 = RewTerm(func=mdp.joint_torques_l2, weight=-1.0e-5)
+    dof_acc_l2 = RewTerm(func=mdp.joint_acc_l2, weight=-2.5e-7)
+    action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-0.01)
+    feet_air_time = RewTerm(
+        func=mdp.feet_air_time,
+        weight=0.125,
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*FOOT"),
+            "threshold": 0.5,
+        },
+    )
+    undesired_contacts = RewTerm(
+        func=mdp.undesired_contacts,
+        weight=-1.0,
+        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*THIGH"), "threshold": 1.0},
+    )
     # -- optional penalties
-    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=1.5)
+    flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=0.0)
     dof_pos_limits = RewTerm(func=mdp.joint_pos_limits, weight=0.0)
+
 
 
 @configclass
@@ -287,8 +239,8 @@ class TerminationsCfg:
         func=mdp.illegal_contact,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base"), "threshold": 1.0},
     )
-    roll_exceed = DoneTerm(func=mdp.roll_exceed, params={"roll_threshold": 1.5})
-    pitch_exceed = DoneTerm(func=mdp.pitch_exceed, params={"pitch_threshold": 1.5})
+    # roll_exceed = DoneTerm(func=mdp.roll_exceed, params={"roll_threshold": 1.5})
+    # pitch_exceed = DoneTerm(func=mdp.pitch_exceed, params={"pitch_threshold": 1.5})
     # height_drop = DoneTerm(func=mdp.root_height_below_minimum, params={"minimum_height": 0.5})
 
 @configclass
@@ -312,7 +264,6 @@ class LocomotionWalkRoughEnvCfg(ManagerBasedRLEnvCfg):
     # Basic settings
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
-    commands: CommandsCfg = CommandsCfg()
     # MDP settings
     rewards: RewardsCfg = RewardsCfg()
     terminations: TerminationsCfg = TerminationsCfg()
@@ -325,18 +276,16 @@ class LocomotionWalkRoughEnvCfg(ManagerBasedRLEnvCfg):
         self.decimation = 4
         self.episode_length_s = 20.0
         # simulation settings
-        self.sim.dt = 0.0025
+        self.sim.dt = 0.005
         self.sim.render_interval = self.decimation
         self.sim.physics_material = self.scene.terrain.physics_material
         self.sim.physx.gpu_max_rigid_patch_count = 10 * 2**15
         # update sensor update periods
         # we tick all the sensors based on the smallest update period (physics update period)
-        # if self.scene.height_scanner is not None:
-        #     self.scene.height_scanner.update_period = self.decimation * self.sim.dt
+        if self.scene.height_scanner is not None:
+            self.scene.height_scanner.update_period = self.decimation * self.sim.dt
         if self.scene.contact_forces is not None:
             self.scene.contact_forces.update_period = self.sim.dt
-        if self.scene.imu is not None:
-            self.scene.imu.update_period = self.sim.dt
 
         # check if terrain levels curriculum is enabled - if so, enable curriculum for terrain generator
         # this generates terrains with increasing difficulty and is useful for training
