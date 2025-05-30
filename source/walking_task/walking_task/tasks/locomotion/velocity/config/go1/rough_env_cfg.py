@@ -52,7 +52,7 @@ class UnitreeGo1WalkRoughEnvCfg(LocomotionWalkRoughEnvCfg):
         self.rewards.feet_air_time.weight = 0.01
         self.rewards.undesired_contacts = None
         self.rewards.dof_torques_l2.weight = -0.0002
-        self.rewards.move_forward.weight = 2.0
+        self.rewards.move_forward.weight = 4.0
         self.rewards.dof_acc_l2.weight = -2.5e-7
 
         # terminations
