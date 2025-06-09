@@ -37,6 +37,7 @@ simulation_app = app_launcher.app
 import gymnasium as gym
 import os
 import torch
+import math
 
 from rsl_rl.runners import OnPolicyRunner
 
@@ -49,6 +50,11 @@ from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../source/walking_task")))
 import walking_task.tasks # noqa: F401
 
+def stance():
+    return [0, 0.65, -1.0]
+
+def swing(pi, t):
+    return [0,0.65 - 0.4 * 0.3 * math.sin(pi/t),-1 + 0.7 * math.sin(pi/t)]
 
 def main():
     """Play with RSL-RL agent."""
@@ -106,14 +112,42 @@ def main():
     # reset environment
     obs, _ = env.get_observations()
     timestep = 0
+    init = 0
+    t = 0
+    m = 1
     # simulate environment
     while simulation_app.is_running():
         # run everything in inference mode
         with torch.inference_mode():
             # agent stepping
             actions = policy(obs)
+            hard_action_0 = stance() + stance() + stance() + stance()
+            hard_action_1 = stance() + swing(0.02*t, 1.0) + stance() + swing(0.02*t, 1.0)
+            hard_action_2 = swing(0.02*t, 1.0) + stance() + swing(0.02*t, 1.0) + stance()
+            if m == 1:
+                hard_action_tensor_1 = torch.tensor(hard_action_1, dtype=torch.float32)
+                hard_action_tensor = hard_action_tensor_1.repeat(256, 1).to('cuda:0')
+            else:
+                hard_action_tensor_1 = torch.tensor(hard_action_2, dtype=torch.float32)
+                hard_action_tensor = hard_action_tensor_1.repeat(256, 1).to('cuda:0')
+
+            hard_action_tensor_1 = torch.tensor(hard_action_0, dtype=torch.float32)
+            hard_action_tensor = hard_action_tensor_1.repeat(256, 1).to('cuda:0')
+            
+            print(f"[INFO] Hard Actions: {hard_action_tensor}")
+            print(f"[INFO] Actions: {actions}")
+            print(f"[INFO] Actions shape: {len(actions)}")
+            print(f"[INFO] Hard Actions shape: {len(hard_action_tensor)}")
+            t += 1
+            if t > 50:
+                t = 0
+                m = -m
             # env stepping
-            obs, _, _, _ = env.step(actions)
+            if init <= 50:
+                obs, _, _, _ = env.step(actions)
+                init += 1
+            else:
+                obs, _, _, _ = env.step(hard_action_tensor)
         if args_cli.video:
             timestep += 1
             # Exit the play loop after recording one video
