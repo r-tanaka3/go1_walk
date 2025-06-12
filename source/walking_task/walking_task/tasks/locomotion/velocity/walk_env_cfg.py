@@ -280,7 +280,7 @@ class RewardsCfg:
     )
     foot_slide = RewTerm(
         func=mdp.feet_slide,
-        weight=-0.01,
+        weight=-0.001,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
         },
