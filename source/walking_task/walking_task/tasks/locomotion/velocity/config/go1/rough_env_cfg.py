@@ -7,6 +7,8 @@ from isaaclab.utils import configclass
 
 from walking_task.tasks.locomotion.velocity.walk_env_cfg import LocomotionWalkRoughEnvCfg
 
+import walking_task.tasks.locomotion.velocity.mdp as mdp
+
 ##
 # Pre-defined configs
 ##
@@ -52,6 +54,7 @@ class UnitreeGo1WalkRoughEnvCfg(LocomotionWalkRoughEnvCfg):
         self.rewards.feet_air_time.weight = 0.01
         self.rewards.undesired_contacts = None
         self.rewards.dof_torques_l2.weight = -0.0002
+        self.rewards.dof_vel_l2.weight = -0.0002
         self.rewards.track_lin_vel_xy_exp.weight = 4.0
         self.rewards.dof_acc_l2.weight = -2.5e-7
 
@@ -67,16 +70,25 @@ class UnitreeGo1WalkRoughEnvCfg_PLAY(UnitreeGo1WalkRoughEnvCfg):
         # make a smaller scene for play
         self.scene.num_envs = 50
         self.scene.env_spacing = 2.5
+        # change terrain to flat
+        self.scene.terrain.terrain_type = "plane"
+        self.scene.terrain.terrain_generator = None
         # spawn the robot randomly in the grid (instead of their terrain levels)
-        self.scene.terrain.max_init_terrain_level = None
+        # self.scene.terrain.max_init_terrain_level = None
         # reduce the number of terrains to save memory
-        if self.scene.terrain.terrain_generator is not None:
-            self.scene.terrain.terrain_generator.num_rows = 5
-            self.scene.terrain.terrain_generator.num_cols = 5
-            self.scene.terrain.terrain_generator.curriculum = False
+        # if self.scene.terrain.terrain_generator is not None:
+        #     self.scene.terrain.terrain_generator.num_rows = 5
+        #     self.scene.terrain.terrain_generator.num_cols = 5
+        #     self.scene.terrain.terrain_generator.curriculum = False
 
+        self.commands.base_velocity.ranges = mdp.UniformVelocityCommandCfg.Ranges(
+            lin_vel_x=(0.3, 0.3), lin_vel_y=(0.0, 0.0), ang_vel_z=(0.0, 0.0), heading=(0.0, 0.0)
+        )
         # disable randomization for play
         self.observations.policy.enable_corruption = False
         # remove random pushing event
         self.events.base_external_force_torque = None
         self.events.push_robot = None
+
+        # no terrain curriculum
+        self.curriculum.terrain_levels = None
