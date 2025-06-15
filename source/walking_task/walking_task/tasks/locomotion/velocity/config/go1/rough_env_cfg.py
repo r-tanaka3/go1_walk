@@ -52,7 +52,8 @@ class UnitreeGo1WalkRoughEnvCfg(LocomotionWalkRoughEnvCfg):
         # rewards
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"
         self.rewards.feet_air_time.weight = 0.001
-        self.rewards.undesired_contacts = None
+        self.rewards.undesired_contacts_thigh = None
+        self.rewards.undesired_contacts_calf = None
         self.rewards.dof_torques_l2.weight = -0.0002
         self.rewards.dof_vel_l2.weight = -0.0002
         self.rewards.track_lin_vel_xy_exp.weight = 5.0
