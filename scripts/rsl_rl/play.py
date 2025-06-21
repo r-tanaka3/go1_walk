@@ -4,6 +4,7 @@
 
 import argparse
 import sys
+import csv
 
 from isaaclab.app import AppLauncher
 
@@ -103,9 +104,9 @@ def main():
     # # export policy to onnx/jit
     # export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
     # export_policy_as_jit(
-    #     ppo_runner.alg.actor_critic, ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.pt"
+    #     ppo_runner.alg.policy, ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.pt"
     # )
-    # export_policy_as_onnx(
+    # # export_policy_as_onnx(
     #     ppo_runner.alg.actor_critic, normalizer=ppo_runner.obs_normalizer, path=export_model_dir, filename="policy.onnx"
     # )
 
@@ -116,6 +117,12 @@ def main():
     t = 0
     m = 1
     # simulate environment
+    csv_file = 'record_tensors.csv'
+
+    with open(csv_file, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([f'val_{i}' for i in range(12)])
+
     while simulation_app.is_running():
         # run everything in inference mode
         with torch.inference_mode():
@@ -134,10 +141,15 @@ def main():
             hard_action_tensor_1 = torch.tensor(hard_action_0, dtype=torch.float32)
             hard_action_tensor = hard_action_tensor_1.repeat(256, 1).to('cuda:0')
             
-            print(f"[INFO] Hard Actions: {hard_action_tensor}")
+            # print(f"[INFO] Hard Actions: {hard_action_tensor}")
             print(f"[INFO] Actions: {actions}")
-            print(f"[INFO] Actions shape: {len(actions)}")
-            print(f"[INFO] Hard Actions shape: {len(hard_action_tensor)}")
+            print(f"[INFO] Actions shape: {actions.shape}")
+            # print(f"[INFO] Hard Actions shape: {len(hard_action_tensor)}")
+
+            with open(csv_file, mode='a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(actions.squeeze().tolist())
+
             t += 1
             if t > 50:
                 t = 0
@@ -146,8 +158,10 @@ def main():
             if init <= 50:
                 obs, _, _, _ = env.step(actions)
                 init += 1
+                # last_action = actions
             else:
-                obs, _, _, _ = env.step(hard_action_tensor)
+                # obs, _, _, _ = env.step(last_action)
+                obs, _, _, _ = env.step(actions)
         if args_cli.video:
             timestep += 1
             # Exit the play loop after recording one video
