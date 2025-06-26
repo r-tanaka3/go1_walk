@@ -54,8 +54,8 @@ import walking_task.tasks # noqa: F401
 def stance():
     return [0, 0.65, -1.0]
 
-def swing(pi, t):
-    return [0,0.65 - 0.4 * 0.3 * math.sin(pi/t),-1 + 0.7 * math.sin(pi/t)]
+def swing(t):
+    return [0,-0.7 + 2.0 * math.sin(t * math.pi / 36),2.0 + 2.0 * math.sin((t+36) * math.pi / 36)]
 
 def main():
     """Play with RSL-RL agent."""
@@ -117,11 +117,11 @@ def main():
     t = 0
     m = 1
     # simulate environment
-    csv_file = 'record_tensors.csv'
+    csv_file = 'record_actions_test.csv'
 
-    with open(csv_file, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow([f'val_{i}' for i in range(12)])
+    # with open(csv_file, mode='w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerow([f'val_{i}' for i in range(12)])
 
     while simulation_app.is_running():
         # run everything in inference mode
@@ -129,31 +129,29 @@ def main():
             # agent stepping
             actions = policy(obs)
             hard_action_0 = stance() + stance() + stance() + stance()
-            hard_action_1 = stance() + swing(0.02*t, 1.0) + stance() + swing(0.02*t, 1.0)
-            hard_action_2 = swing(0.02*t, 1.0) + stance() + swing(0.02*t, 1.0) + stance()
-            if m == 1:
-                hard_action_tensor_1 = torch.tensor(hard_action_1, dtype=torch.float32)
-                hard_action_tensor = hard_action_tensor_1.repeat(256, 1).to('cuda:0')
-            else:
-                hard_action_tensor_1 = torch.tensor(hard_action_2, dtype=torch.float32)
-                hard_action_tensor = hard_action_tensor_1.repeat(256, 1).to('cuda:0')
+            # hard_action_1 = stance() + swing(0.02*t, 1.0) + stance() + swing(0.02*t, 1.0)
+            # hard_action_2 = swing(0.02*t, 1.0) + stance() + swing(0.02*t, 1.0) + stance()
+            # if m == 1:
+            #     hard_action_tensor_1 = torch.tensor(hard_action_1, dtype=torch.float32)
+            #     hard_action_tensor = hard_action_tensor_1.repeat(256, 1).to('cuda:0')
+            # else:
+            #     hard_action_tensor_1 = torch.tensor(hard_action_2, dtype=torch.float32)
+            #     hard_action_tensor = hard_action_tensor_1.repeat(256, 1).to('cuda:0')
 
-            hard_action_tensor_1 = torch.tensor(hard_action_0, dtype=torch.float32)
-            hard_action_tensor = hard_action_tensor_1.repeat(256, 1).to('cuda:0')
+            # hard_action_tensor_1 = torch.tensor(hard_action_0, dtype=torch.float32)
+            # hard_action_tensor = hard_action_tensor_1.repeat(256, 1).to('cuda:0')
             
             # print(f"[INFO] Hard Actions: {hard_action_tensor}")
-            print(f"[INFO] Actions: {actions}")
-            print(f"[INFO] Actions shape: {actions.shape}")
             # print(f"[INFO] Hard Actions shape: {len(hard_action_tensor)}")
 
-            with open(csv_file, mode='a', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow(actions.squeeze().tolist())
+            # with open(csv_file, mode='a', newline='') as file:
+            #     writer = csv.writer(file)
+            #     writer.writerow(actions.squeeze().tolist())
 
             t += 1
-            if t > 50:
-                t = 0
-                m = -m
+            # if t > 50:
+            #     t = 0
+            #     m = -m
             # env stepping
             if init <= 50:
                 obs, _, _, _ = env.step(actions)
@@ -161,6 +159,27 @@ def main():
                 # last_action = actions
             else:
                 # obs, _, _, _ = env.step(last_action)
+                hard_action_test_1 = swing(t % 36)
+                hard_action_test_2 = swing((t+18) % 36)
+
+                actions[:, 0] = 0.0 #hard_action_test[0]
+                actions[:, 1] = hard_action_test_1[1]
+                actions[:, 2] = hard_action_test_1[2]
+                actions[:, 3] = 0.0
+                actions[:, 4] = hard_action_test_2[1]
+                actions[:, 5] = hard_action_test_2[2]
+                actions[:, 6] = 0.0
+                actions[:, 7] = hard_action_test_2[1]
+                actions[:, 8] = hard_action_test_2[2]
+                actions[:, 9] = 0.0
+                actions[:, 10] = hard_action_test_1[1]
+                actions[:, 11] = hard_action_test_1[2]
+                # with open(csv_file, mode='a', newline='') as file:
+                #     print(f"[INFO] Writing actions to {csv_file}")
+                #     writer = csv.writer(file)
+                #     writer.writerow(actions.squeeze().tolist())
+                # print(f"[INFO] Actions: {actions}")
+                # print(f"[INFO] Actions shape: {actions.shape}")
                 obs, _, _, _ = env.step(actions)
         if args_cli.video:
             timestep += 1

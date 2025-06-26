@@ -6,6 +6,7 @@
 from isaaclab.utils import configclass
 
 from .rough_env_cfg import UnitreeGo1WalkRoughEnvCfg
+import walking_task.tasks.locomotion.velocity.mdp as mdp
 
 
 @configclass
@@ -15,15 +16,15 @@ class UnitreeGo1WalkFlatEnvCfg(UnitreeGo1WalkRoughEnvCfg):
         super().__post_init__()
 
         # override rewards
-        self.rewards.flat_orientation_l2.weight = -0.005 #unnecessary?
+        self.rewards.flat_orientation_l2.weight = -2.5
         self.rewards.feet_air_time.weight = 0.25
 
         # change terrain to flat
         self.scene.terrain.terrain_type = "plane"
         self.scene.terrain.terrain_generator = None
         # no height scan
-        # self.scene.height_scanner = None
-        # self.observations.policy.height_scan = None
+        self.scene.height_scanner = None
+        self.observations.policy.height_scan = None
         # no terrain curriculum
         self.curriculum.terrain_levels = None
 
@@ -44,3 +45,8 @@ class UnitreeGo1WalkFlatEnvCfg_PLAY(UnitreeGo1WalkFlatEnvCfg):
         self.events.physics_material = None
         self.events.add_base_mass = None
         self.events.base_com = None
+        # command to walk straight forward
+        self.commands.base_velocity.ranges = mdp.UniformVelocityCommandCfg.Ranges(
+            lin_vel_x=(0.4, 0.4), lin_vel_y=(0.0, 0.0), ang_vel_z=(0.0, 0.0), heading=(0, 0)
+        )
+        self.terminations.base_contact = None
