@@ -82,7 +82,7 @@ class UnitreeGo1WalkRoughEnvCfg_PLAY(UnitreeGo1WalkRoughEnvCfg):
         #     self.scene.terrain.terrain_generator.curriculum = False
 
         self.commands.base_velocity.ranges = mdp.UniformVelocityCommandCfg.Ranges(
-            lin_vel_x=(0.3, 0.3), lin_vel_y=(0.0, 0.0), ang_vel_z=(0.0, 0.0), heading=(0.0, 0.0)
+            lin_vel_x=(0.0, 0.0), lin_vel_y=(0.0, 0.0), ang_vel_z=(0.0, 0.0), heading=(0.0, 0.0)
         )
         # disable randomization for play
         self.observations.policy.enable_corruption = False
