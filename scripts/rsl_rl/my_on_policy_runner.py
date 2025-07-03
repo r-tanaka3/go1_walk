@@ -9,6 +9,7 @@ import os
 import statistics
 import time
 import torch
+import math
 from collections import deque
 
 import rsl_rl
@@ -24,7 +25,7 @@ from rsl_rl.modules import (
 from rsl_rl.utils import store_code_state
 
 
-class OnPolicyRunner:
+class MyOnPolicyRunner:
     """On-policy runner for training and evaluation."""
 
     def __init__(self, env: VecEnv, train_cfg: dict, log_dir: str | None = None, device="cpu"):
@@ -131,10 +132,20 @@ class OnPolicyRunner:
         self.current_learning_iteration = 0
         self.git_status_repos = [rsl_rl.__file__]
     
-    def calc_reference_actions(self, actions: torch.Tensor, phase: int) -> torch.Tensor:
-        tmp = [0,-0.7 + 2.0 * math.sin(phase * math.pi / 36),2.0 + 2.0 * math.sin((phase+36) * math.pi / 36)]
-        reference_actions = actions[:,0] = 0
-        return reference_acitons
+    def add_reference_actions(self, actions: torch.Tensor, phase: int) -> torch.Tensor:
+
+        hard_action_test_1 = [0,-0.7 + 2.0 * math.sin(phase * math.pi / 36),2.0 + 2.0 * math.sin((phase+36) * math.pi / 36)]
+        hard_action_test_2 = [0,-0.7 + 2.0 * math.sin((phase+18) * math.pi / 36),2.0 + 2.0 * math.sin((phase+54) * math.pi / 36)]
+
+        actions[:, 1] += hard_action_test_1[1]
+        actions[:, 2] += hard_action_test_1[2]
+        actions[:, 4] += hard_action_test_2[1]
+        actions[:, 5] += hard_action_test_2[2]
+        actions[:, 7] += hard_action_test_2[1]
+        actions[:, 8] += hard_action_test_2[2]
+        actions[:, 10] += hard_action_test_1[1]
+        actions[:, 11] += hard_action_test_1[2]
+        return actions
 
     def learn(self, num_learning_iterations: int, init_at_random_ep_len: bool = False):  # noqa: C901
         # initialize writer
@@ -208,8 +219,7 @@ class OnPolicyRunner:
                     # Sample actions
                     actions = self.alg.act(obs, privileged_obs)
                     # Add reference actions
-                    reference_actions = calc_reference_actions(obs.phase)
-                    actions = reference_actions + actions if obs.reference_actions is not None else actions
+                    actions = self.add_reference_actions(actions, obs.phase)
                     # Step the environment
                     obs, rewards, dones, infos = self.env.step(actions.to(self.env.device))
                     # Move to device
