@@ -45,5 +45,5 @@ class UnitreeGo1WalkFlatEnvCfg_PLAY(UnitreeGo1WalkFlatEnvCfg):
         self.events.push_robot = None
 
         self.commands.base_velocity.ranges = mdp.UniformVelocityCommandCfg.Ranges(
-            lin_vel_x=(0.4, 0.4), lin_vel_y=(0.0, 0.0), ang_vel_z=(0.0, 0.0), heading=(0.0, 0.0)
+            lin_vel_x=(0.0, 0.0), lin_vel_y=(0.0, 0.0), ang_vel_z=(0.0, 0.0), heading=(0.0, 0.0)
         )
