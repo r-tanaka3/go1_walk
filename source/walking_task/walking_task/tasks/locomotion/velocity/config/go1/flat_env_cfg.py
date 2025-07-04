@@ -6,6 +6,7 @@
 from isaaclab.utils import configclass
 
 from .rough_env_cfg import UnitreeGo1WalkRoughEnvCfg
+import walking_task.tasks.locomotion.velocity.mdp as mdp
 
 
 @configclass
@@ -23,7 +24,8 @@ class UnitreeGo1WalkFlatEnvCfg(UnitreeGo1WalkRoughEnvCfg):
         self.scene.terrain.terrain_generator = None
         # no height scan
         self.scene.height_scanner = None
-        self.observations.policy.height_scan = None
+        # self.observations.policy.height_scan = None
+        self.observations.critic.height_scan = None
         # no terrain curriculum
         self.curriculum.terrain_levels = None
 
@@ -41,3 +43,7 @@ class UnitreeGo1WalkFlatEnvCfg_PLAY(UnitreeGo1WalkFlatEnvCfg):
         # remove random pushing event
         self.events.base_external_force_torque = None
         self.events.push_robot = None
+
+        self.commands.base_velocity.ranges = mdp.UniformVelocityCommandCfg.Ranges(
+            lin_vel_x=(0.4, 0.4), lin_vel_y=(0.0, 0.0), ang_vel_z=(0.0, 0.0), heading=(0.0, 0.0)
+        )
