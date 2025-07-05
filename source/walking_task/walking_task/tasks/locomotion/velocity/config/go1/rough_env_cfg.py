@@ -29,8 +29,7 @@ class UnitreeGo1WalkRoughEnvCfg(LocomotionWalkRoughEnvCfg):
         self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.01
 
         # reduce action scale
-        self.actions.joint_pos.scale = 0.5 # hip .25, calf and thigh 0.5
-
+        self.actions.joint_pos.scale = 0.2
         # event
         self.events.push_robot = None
         self.events.add_base_mass.params["mass_distribution_params"] = (-1.0, 3.0)

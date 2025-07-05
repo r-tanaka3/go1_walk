@@ -167,13 +167,33 @@ class WalkingRlVecEnvWrapper(VecEnv):
         obs_dict, _ = self.env.reset()
         # return observations
         return obs_dict["policy"], {"observations": obs_dict}
+    
+    def add_reference(self, actions: torch.Tensor) -> torch.Tensor:
+        # get the count of the current step
+        count = self.get_observations()[1]["observations"]["count"]
+
+        # add the reference actions
+        # Reshape count from (1, N) to (N,) for easier indexing
+        count_flat = count.squeeze(0)  # Shape: (N,)
+        actions[:, 1] += -0.7 + 2.0 * torch.sin((count_flat % 36) * 3.14 / 36)
+        actions[:, 2] += 2.0 + 2.0 * torch.sin((count_flat % 36) * 3.14 / 36)
+        actions[:, 4] += -0.7 + 2.0 * torch.sin(((count_flat+18) % 36) * 3.14 / 36)
+        actions[:, 5] += 2.0 + 2.0 * torch.sin(((count_flat+18) % 36) * 3.14 / 36)
+        actions[:, 7] += -0.7 + 2.0 * torch.sin(((count_flat+18) % 36) * 3.14 / 36)
+        actions[:, 8] += 2.0 + 2.0 * torch.sin(((count_flat+18) % 36) * 3.14 / 36)
+        actions[:, 10] += -0.7 + 2.0 * torch.sin((count_flat % 36) * 3.14 / 36)
+        actions[:, 11] += 2.0 + 2.0 * torch.sin((count_flat % 36) * 3.14 / 36)
+
+        return actions
+
 
     def step(self, actions: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
         # clip actions
         if self.clip_actions is not None:
             actions = torch.clamp(actions, -self.clip_actions, self.clip_actions)
+        added_actions = self.add_reference(actions)
         # record step information
-        obs_dict, rew, terminated, truncated, extras = self.env.step(actions)
+        obs_dict, rew, terminated, truncated, extras = self.env.step(added_actions)
         # compute dones for compatibility with RSL-RL
         dones = (terminated | truncated).to(dtype=torch.long)
         # move extra observations to the extras dict

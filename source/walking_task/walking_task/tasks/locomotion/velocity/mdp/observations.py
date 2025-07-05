@@ -26,6 +26,5 @@ def feet_contact(
     feet_contact_bi = force_norms > threshold
     return feet_contact_bi
 
-def count(env:ManagerBasedRLEnv) -> torch.Tensor:
-    """number of steps in the current episode"""
-    return env.episode_length_buf 
+def count(env: ManagerBasedRLEnv) -> torch.Tensor:
+    return env.episode_length_buf

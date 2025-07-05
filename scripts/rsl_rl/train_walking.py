@@ -60,14 +60,16 @@ from isaaclab.envs import (
 )
 from isaaclab.utils.dict import print_dict
 from isaaclab.utils.io import dump_pickle, dump_yaml
-from isaaclab_rl.walking_rl import RslRlOnPolicyRunnerCfg
-from walking_rl import WalkingRlVecEnvWrapper
+from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg
 from isaaclab_tasks.utils import get_checkpoint_path
 from isaaclab_tasks.utils.hydra import hydra_task_config
 
 # Import extensions to set up environment tasks
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../source/walking_task")))
 import walking_task.tasks # noqa: F401
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../source")))
+from walking_rl import WalkingRlVecEnvWrapper
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
