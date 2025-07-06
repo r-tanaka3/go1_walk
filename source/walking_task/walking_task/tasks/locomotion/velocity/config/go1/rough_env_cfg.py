@@ -29,7 +29,7 @@ class UnitreeGo1WalkRoughEnvCfg(LocomotionWalkRoughEnvCfg):
         self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.01
 
         # reduce action scale
-        self.actions.joint_pos.scale = 0.5 # hip .25, calf and thigh 0.5
+        self.actions.joint_pos.scale = 0.25 # hip .125, calf and thigh 0.25
 
         # event
         self.events.push_robot = None
@@ -52,11 +52,12 @@ class UnitreeGo1WalkRoughEnvCfg(LocomotionWalkRoughEnvCfg):
 
         # rewards
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = ".*_foot"
-        self.rewards.feet_air_time.weight = 0.001
+        self.rewards.feet_air_time.weight = 0.01 # 0.05
         self.rewards.undesired_contacts = None
         self.rewards.dof_torques_l2.weight = -0.0002
-        self.rewards.dof_vel_l2.weight = -0.0002
-        self.rewards.track_lin_vel_xy_exp.weight = 5.0
+        # self.rewards.dof_vel_l2.weight = -0.0002
+        self.rewards.track_lin_vel_xy_exp.weight = 1.5
+        self.rewards.track_ang_vel_z_exp.weight = 0.75
         self.rewards.dof_acc_l2.weight = -2.5e-7
 
         # terminations
