@@ -1,0 +1,81 @@
+Data Comparison Report
+==================================================
+
+Isaac Sim data: 1000 steps
+mujoco data: 405 steps
+Comparison length: 405 steps
+
+Action Statistics:
+--------------------
+FL_hip:
+  Isaac - Mean: -0.4486, Std: 0.5475
+  mujoco  - Mean: -0.4486, Std: 0.5475
+  Diff  - Mean: 0.0000, Std: 0.0000
+
+FR_hip:
+  Isaac - Mean: 1.0313, Std: 0.3744
+  mujoco  - Mean: 1.0313, Std: 0.3744
+  Diff  - Mean: 0.0000, Std: 0.0000
+
+RL_hip:
+  Isaac - Mean: -1.2279, Std: 0.5860
+  mujoco  - Mean: -1.2279, Std: 0.5860
+  Diff  - Mean: 0.0000, Std: 0.0000
+
+RR_hip:
+  Isaac - Mean: 1.9273, Std: 0.3116
+  mujoco  - Mean: 1.9273, Std: 0.3116
+  Diff  - Mean: 0.0000, Std: 0.0000
+
+FL_thigh:
+  Isaac - Mean: -0.6184, Std: 0.3742
+  mujoco  - Mean: -0.6184, Std: 0.3742
+  Diff  - Mean: 0.0000, Std: 0.0000
+
+FR_thigh:
+  Isaac - Mean: -0.2969, Std: 0.2420
+  mujoco  - Mean: -0.2969, Std: 0.2420
+  Diff  - Mean: 0.0000, Std: 0.0000
+
+RL_thigh:
+  Isaac - Mean: 0.0938, Std: 0.3501
+  mujoco  - Mean: 0.0938, Std: 0.3501
+  Diff  - Mean: 0.0000, Std: 0.0000
+
+RR_thigh:
+  Isaac - Mean: 0.2785, Std: 0.3214
+  mujoco  - Mean: 0.2785, Std: 0.3214
+  Diff  - Mean: 0.0000, Std: 0.0000
+
+FL_calf:
+  Isaac - Mean: 1.0615, Std: 0.6686
+  mujoco  - Mean: 1.0615, Std: 0.6686
+  Diff  - Mean: 0.0000, Std: 0.0000
+
+FR_calf:
+  Isaac - Mean: 0.7719, Std: 0.5991
+  mujoco  - Mean: 0.7719, Std: 0.5991
+  Diff  - Mean: 0.0000, Std: 0.0000
+
+RL_calf:
+  Isaac - Mean: 0.9552, Std: 0.8409
+  mujoco  - Mean: 0.9552, Std: 0.8409
+  Diff  - Mean: 0.0000, Std: 0.0000
+
+RR_calf:
+  Isaac - Mean: 0.7306, Std: 0.8333
+  mujoco  - Mean: 0.7306, Std: 0.8333
+  Diff  - Mean: 0.0000, Std: 0.0000
+
+
+Observation Statistics:
+-------------------------
+Projected Gravity:
+  x - Isaac: -0.0010, mujoco: -0.0257, Diff: 0.0247
+  y - Isaac: 0.0476, mujoco: 0.0430, Diff: 0.0045
+  z - Isaac: -0.9988, mujoco: -0.4781, Diff: 0.5207
+
+Velocity Commands:
+  x - Isaac: 0.4000, mujoco: 0.3000, Diff: 0.1000
+  y - Isaac: 0.0000, mujoco: 0.0000, Diff: 0.0000
+  z - Isaac: 0.0000, mujoco: 0.0000, Diff: 0.0000
