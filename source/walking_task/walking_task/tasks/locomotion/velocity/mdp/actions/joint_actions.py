@@ -8,6 +8,9 @@ from __future__ import annotations
 import torch
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
+import numpy as np
+import os
+from datetime import datetime
 
 import omni.log
 
@@ -80,6 +83,16 @@ class JointActionCustumScale(ActionTerm):
         self._raw_actions = torch.zeros(self.num_envs, self.action_dim, device=self.device)
         self._processed_actions = torch.zeros_like(self.raw_actions)
 
+        # Initialize logging for 1000 steps
+        self._max_log_steps = 1000
+        self._current_step = 0
+        self._action_buffer = np.zeros((self._max_log_steps, self.num_envs, self.action_dim))
+        self._log_dir = "visualization_results_0712_2"
+        os.makedirs(self._log_dir, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self._log_file = os.path.join(self._log_dir, f"processed_actions_{timestamp}.npy")
+        self._logging_active = True
+
         # parse scale
         if isinstance(cfg.scale, (float, int)):
             self._scale = float(cfg.scale)
@@ -144,6 +157,8 @@ class JointActionCustumScale(ActionTerm):
             self._processed_actions = torch.clamp(
                 self._processed_actions, min=self._clip[:, :, 0], max=self._clip[:, :, 1]
             )
+        # Log processed actions for 1000 steps
+        self._log_processed_actions()
 
     def reset(self, env_ids: Sequence[int] | None = None) -> None:
         self._raw_actions[env_ids] = 0.0
@@ -165,3 +180,17 @@ class JointPositionActionCustumScale(JointActionCustumScale):
     def apply_actions(self):
         # set position targets
         self._asset.set_joint_position_target(self.processed_actions, joint_ids=self._joint_ids)
+
+    def _log_processed_actions(self):
+        """Log processed actions to buffer for 1000 steps"""
+        if self._logging_active and self._current_step < self._max_log_steps:
+            # Store current processed actions in buffer
+            self._action_buffer[self._current_step] = self.processed_actions.cpu().numpy()
+            self._current_step += 1
+            
+            # Save to file when we reach 1000 steps
+            if self._current_step >= self._max_log_steps:
+                print(f"Saving {self._max_log_steps} steps of processed actions to: {self._log_file}")
+                np.save(self._log_file, self._action_buffer)
+                self._logging_active = False
+                print("Action logging completed!")

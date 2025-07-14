@@ -25,7 +25,7 @@ class DataVisualizer:
             'velocity_commands': {'start': 39, 'size': 3, 'labels': ['cmd_x', 'cmd_y', 'cmd_z']}
         }
 
-    def load_isaac_data(self, pkl_path):
+    def load_isaac_data(self, pkl_path, log_dir_isaac="visualization_results_0712_2"):
         """Load data recorded from Isaac Sim (record.py)"""
         try:
             with open(pkl_path, 'rb') as f:
@@ -42,15 +42,64 @@ class DataVisualizer:
                 
             print(f"Isaac data loaded: {actions.shape[0]} steps")
             print(f"Action shape: {actions.shape}, Observation shape: {observations.shape}")
-            
+
+            # Check if log_dir_isaac exists
+            if not os.path.exists(log_dir_isaac):
+                print(f"Warning: Isaac log directory not found: {log_dir_isaac}")
+                processed_actions = np.zeros_like(actions)
+            else:
+                # Look for both .pt and .npy files
+                processed_action_files_pt = sorted([f for f in os.listdir(log_dir_isaac) if f.startswith('processed_actions') and f.endswith('.pt')])
+                processed_action_files_npy = sorted([f for f in os.listdir(log_dir_isaac) if f.startswith('processed_actions') and f.endswith('.npy')])
+                
+                all_processed_actions = []
+                
+                # Load .pt files
+                for file in processed_action_files_pt:
+                    try:
+                        processed_action_data = torch.load(os.path.join(log_dir_isaac, file))
+                        processed_action_numpy = processed_action_data.numpy()
+                        
+                        # Remove extra dimensions if present
+                        if len(processed_action_numpy.shape) == 3 and processed_action_numpy.shape[1] == 1:
+                            processed_action_numpy = processed_action_numpy.squeeze(1)
+                        
+                        all_processed_actions.append(processed_action_numpy)
+                        print(f"Loaded processed action file: {file}, shape: {processed_action_numpy.shape}")
+                    except Exception as e:
+                        print(f"Error loading .pt file {file}: {e}")
+                
+                # Load .npy files
+                for file in processed_action_files_npy:
+                    try:
+                        processed_action_numpy = np.load(os.path.join(log_dir_isaac, file))
+                        
+                        # Remove extra dimensions if present
+                        if len(processed_action_numpy.shape) == 3 and processed_action_numpy.shape[1] == 1:
+                            processed_action_numpy = processed_action_numpy.squeeze(1)
+                        
+                        all_processed_actions.append(processed_action_numpy)
+                        print(f"Loaded processed action file: {file}, shape: {processed_action_numpy.shape}")
+                    except Exception as e:
+                        print(f"Error loading .npy file {file}: {e}")
+                
+                if all_processed_actions:
+                    processed_actions = np.concatenate(all_processed_actions, axis=0)
+                    print(f"Total processed actions shape: {processed_actions.shape}")
+                else:
+                    print("Warning: No processed action files found, using zeros")
+                    processed_actions = np.zeros_like(actions)
+
             return {
                 'actions': actions,
                 'observations': observations,
+                'processed_actions': processed_actions,
                 'timesteps': np.arange(len(actions))
             }
+        
         except Exception as e:
-            print(f"Error loading Isaac data: {e}")
-            return None
+                print(f"Error loading Isaac data: {e}")
+                return None
 
     def load_mujoco_robot_data(self, log_dir):
         """Load data recorded from mujoco (go1_rl_mujoco_insert_actions.py)"""
@@ -58,41 +107,51 @@ class DataVisualizer:
             # Find all observation and action files
             obs_files = sorted([f for f in os.listdir(log_dir) if f.startswith('observations_step_') and f.endswith('.pt')])
             action_files = sorted([f for f in os.listdir(log_dir) if f.startswith('actions_step_') and f.endswith('.pt')])
+            processed_action_files = sorted([f for f in os.listdir(log_dir) if f.startswith('processed_actions_step_') and f.endswith('.pt')])
             
-            if not obs_files or not action_files:
+            if not obs_files or not action_files or not processed_action_files:
                 print(f"No data files found in {log_dir}")
                 return None
             
             # Load and concatenate all data
             all_observations = []
             all_actions = []
+            all_processed_actions = []
             
-            for obs_file, action_file in zip(obs_files, action_files):
+            for obs_file, action_file, processed_action_file in zip(obs_files, action_files, processed_action_files):
                 obs_data = torch.load(os.path.join(log_dir, obs_file))
                 action_data = torch.load(os.path.join(log_dir, action_file))
+                processed_action_data = torch.load(os.path.join(log_dir, processed_action_file))
                 
                 # Convert to numpy and handle shape issues
                 obs_numpy = obs_data.numpy()
                 action_numpy = action_data.numpy()
+                processed_action_numpy = processed_action_data.numpy()
                 
                 # Remove extra dimensions if present
                 if len(obs_numpy.shape) == 3 and obs_numpy.shape[1] == 1:
                     obs_numpy = obs_numpy.squeeze(1)  # Remove the middle dimension (1000, 1, 42) -> (1000, 42)
                 if len(action_numpy.shape) == 3 and action_numpy.shape[1] == 1:
                     action_numpy = action_numpy.squeeze(1)  # Remove extra dimension if present
+                if len(processed_action_numpy.shape) == 3 and processed_action_numpy.shape[1] == 1:
+                    processed_action_numpy = processed_action_numpy.squeeze(1)  # Remove extra dimension if present
                 
                 all_observations.append(obs_numpy)
                 all_actions.append(action_numpy)
+                all_processed_actions.append(processed_action_numpy)
             
             observations = np.concatenate(all_observations, axis=0)
             actions = np.concatenate(all_actions, axis=0)
+            processed_actions = np.concatenate(all_processed_actions, axis=0)
             
             print(f"mujoco data loaded: {actions.shape[0]} steps")
             print(f"Action shape: {actions.shape}, Observation shape: {observations.shape}")
+            print(f"Processed Action shape: {processed_actions.shape}")
             
             return {
                 'actions': actions,
                 'observations': observations,
+                'processed_actions': processed_actions,
                 'timesteps': np.arange(len(actions))
             }
         except Exception as e:
@@ -134,6 +193,44 @@ class DataVisualizer:
         
         plt.tight_layout()
         plt.savefig(os.path.join(save_dir, 'actions_comparison.png'), dpi=300, bbox_inches='tight')
+        plt.close()
+        print("Actions comparison plot saved")
+
+    def plot_processed_actions(self, isaac_data, mujoco_data, save_dir):
+        """Plot action comparisons"""
+        if isaac_data is None or mujoco_data is None:
+            print("Cannot plot actions: missing data")
+            return
+        
+        # Determine the minimum length for comparison
+        min_len = min(len(isaac_data['actions']), len(mujoco_data['actions']))
+        
+        # Create subplots for each joint
+        fig, axes = plt.subplots(4, 3, figsize=(15, 12))
+        fig.suptitle('Processed Joint Actions Comparison: Isaac Sim vs mujoco', fontsize=16)
+        
+        for i, joint_name in enumerate(self.joint_names):
+            row = i // 3
+            col = i % 3
+            ax = axes[row, col]
+            
+            # Plot Isaac data
+            isaac_actions = isaac_data['processed_actions'][:min_len, i]
+            mujoco_actions = mujoco_data['processed_actions'][:min_len, i]
+            
+            timesteps = np.arange(min_len)
+            
+            ax.plot(timesteps, isaac_actions, label='Isaac Sim', alpha=0.7, linewidth=1)
+            ax.plot(timesteps, mujoco_actions, label='mujoco', alpha=0.7, linewidth=1)
+            
+            ax.set_title(f'{joint_name}')
+            ax.set_xlabel('Timestep')
+            ax.set_ylabel('Action Value')
+            ax.legend()
+            ax.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(save_dir, 'processed_actions_comparison.png'), dpi=300, bbox_inches='tight')
         plt.close()
         print("Actions comparison plot saved")
 
@@ -403,10 +500,11 @@ def main():
     visualizer.plot_statistical_comparison(isaac_data, mujoco_data, args.output_dir)
     visualizer.plot_detailed_joint_comparison(isaac_data, mujoco_data, args.output_dir)
     visualizer.generate_summary_report(isaac_data, mujoco_data, args.output_dir)
+    visualizer.plot_processed_actions(isaac_data, mujoco_data, args.output_dir)
     
     print(f"All visualizations saved to: {args.output_dir}")
 
 if __name__ == "__main__":
     main()
 
-# python scripts/debug/compare_records.py --isaac_data recorded_data_2025-07-06_09-29-38.pkl --mujoco_data scripts/debug/go1_logs_20250712_083854 --output_dir visualization_results_0712_2
+# python scripts/debug/compare_records.py --isaac_data recorded_data_2025-07-06_09-29-38.pkl --mujoco_data scripts/debug/go1_logs_20250713_061838 --output_dir visualization_results_0713

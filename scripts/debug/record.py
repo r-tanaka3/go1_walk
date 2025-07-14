@@ -136,11 +136,11 @@ def main():
     recorded_data['metadata']['obs_shape'] = recorded_data['observations'].shape
     recorded_data['metadata']['actual_steps'] = len(recorded_data['timesteps'])
     
-    # Save data
-    save_path = f"recorded_data_2025-07-06_09-29-38.pkl"
+    # # Save data
+    # save_path = f"recorded_data_2025-07-06_09-29-38.pkl"
     
-    with open(save_path, 'wb') as f:
-        pickle.dump(recorded_data, f)
+    # with open(save_path, 'wb') as f:
+    #     pickle.dump(recorded_data, f)
     
     print(f"[INFO]: Data saved to {save_path}")
     print(f"[INFO]: Recorded {len(recorded_data['timesteps'])} steps")
