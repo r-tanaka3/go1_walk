@@ -33,11 +33,7 @@ class UnitreeGo1WalkRoughEnvCfg(LocomotionWalkRoughEnvCfg):
 
         # event
         self.events.push_robot = None
-        self.events.add_base_mass.params["mass_distribution_params"] = (-1.0, 3.0)
-        self.events.add_base_mass.params["asset_cfg"].body_names = "trunk"
         self.events.base_external_force_torque.params["asset_cfg"].body_names = "trunk"
-        self.events.base_com.params["asset_cfg"].body_names = "trunk"
-        self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
         self.events.reset_base.params = {
             "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-3.14, 3.14)},
             "velocity_range": {
@@ -91,6 +87,10 @@ class UnitreeGo1WalkRoughEnvCfg_PLAY(UnitreeGo1WalkRoughEnvCfg):
         # remove random pushing event
         self.events.base_external_force_torque = None
         self.events.push_robot = None
+        self.events.physics_material = None
+        self.events.add_base_mass = None
+        self.events.base_com = None
+        self.events.reset_base = None
 
         # no terrain curriculum
         self.curriculum.terrain_levels = None

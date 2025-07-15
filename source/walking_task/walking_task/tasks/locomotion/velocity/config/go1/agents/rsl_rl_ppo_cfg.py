@@ -42,7 +42,7 @@ class UnitreeGo1FlatWalkPPORunnerCfg(UnitreeGo1RoughWalkPPORunnerCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        self.max_iterations = 300
-        self.experiment_name = "unitree_go1_walk_0704"
+        self.max_iterations = 1500
+        self.experiment_name = "unitree_go1_walk_0715"
         self.policy.actor_hidden_dims = [128, 128, 128]
         self.policy.critic_hidden_dims = [128, 128, 128]

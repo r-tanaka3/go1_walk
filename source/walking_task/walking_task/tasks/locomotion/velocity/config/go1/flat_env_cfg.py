@@ -43,6 +43,10 @@ class UnitreeGo1WalkFlatEnvCfg_PLAY(UnitreeGo1WalkFlatEnvCfg):
         # remove random pushing event
         self.events.base_external_force_torque = None
         self.events.push_robot = None
+        self.events.physics_material = None
+        self.events.add_base_mass = None
+        self.events.base_com = None
+        self.events.pd_gains = None
 
         self.commands.base_velocity.ranges = mdp.UniformVelocityCommandCfg.Ranges(
             lin_vel_x=(0.4, 0.4), lin_vel_y=(0.0, 0.0), ang_vel_z=(0.0, 0.0), heading=(0.0, 0.0)

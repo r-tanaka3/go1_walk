@@ -170,8 +170,8 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.8, 0.8),
-            "dynamic_friction_range": (0.6, 0.6),
+            "static_friction_range": (0.2, 1.8),
+            "dynamic_friction_range": (0.2, 1.8),
             "restitution_range": (0.0, 0.0),
             "num_buckets": 64,
         },
@@ -181,8 +181,8 @@ class EventCfg:
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="base"),
-            "mass_distribution_params": (-5.0, 5.0),
+            "asset_cfg": SceneEntityCfg("robot", body_names="trunk"),
+            "mass_distribution_params": (-1.0, 3.0),
             "operation": "add",
         },
     )
@@ -191,8 +191,19 @@ class EventCfg:
         func=mdp.randomize_rigid_body_com,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="base"),
+            "asset_cfg": SceneEntityCfg("robot", body_names="trunk"),
             "com_range": {"x": (-0.05, 0.05), "y": (-0.05, 0.05), "z": (-0.01, 0.01)},
+        },
+    )
+
+    pd_gains = EventTerm(
+        func = mdp.randomize_actuator_gains,
+        mode = "startup",
+        params = {
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
+            "stiffness_distribution_params": (0.5, 1.5),
+            "damping_distribution_params": (0.5, 1.5),
+            "operation": "scale",
         },
     )
 
@@ -220,15 +231,6 @@ class EventCfg:
                 "pitch": (-0.5, 0.5),
                 "yaw": (-0.5, 0.5),
             },
-        },
-    )
-
-    reset_robot_joints = EventTerm(
-        func=mdp.reset_joints_by_scale,
-        mode="reset",
-        params={
-            "position_range": (0.5, 1.5),
-            "velocity_range": (0.0, 0.0),
         },
     )
 
