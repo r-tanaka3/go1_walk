@@ -51,7 +51,7 @@ def main():
     )
 
     # specify directory for logging experiments
-    log_path = os.path.join("logs", "rsl_rl", "unitree_go1_walk_0704", "2025-07-06_09-29-38", "exported", "policy.pt")
+    log_path = os.path.join("logs", "rsl_rl", "unitree_go1_walk_0715", "2025-07-15_00-48-59", "exported", "policy.pt")
 
     # Check if model file exists
     if not os.path.exists(log_path):
@@ -136,11 +136,11 @@ def main():
     recorded_data['metadata']['obs_shape'] = recorded_data['observations'].shape
     recorded_data['metadata']['actual_steps'] = len(recorded_data['timesteps'])
     
-    # # Save data
-    # save_path = f"recorded_data_2025-07-06_09-29-38.pkl"
+    # Save data
+    save_path = f"recorded_data_2025-07-15.pkl"
     
-    # with open(save_path, 'wb') as f:
-    #     pickle.dump(recorded_data, f)
+    with open(save_path, 'wb') as f:
+        pickle.dump(recorded_data, f)
     
     print(f"[INFO]: Data saved to {save_path}")
     print(f"[INFO]: Recorded {len(recorded_data['timesteps'])} steps")

@@ -50,7 +50,7 @@ class DataVisualizer:
             else:
                 # Look for both .pt and .npy files
                 processed_action_files_pt = sorted([f for f in os.listdir(log_dir_isaac) if f.startswith('processed_actions') and f.endswith('.pt')])
-                processed_action_files_npy = sorted([f for f in os.listdir(log_dir_isaac) if f.startswith('processed_actions') and f.endswith('.npy')])
+                processed_action_files_npy = sorted([f for f in os.listdir(log_dir_isaac) if f.startswith('processed_actions_20250715_034042') and f.endswith('.npy')])
                 
                 all_processed_actions = []
                 
@@ -507,4 +507,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-# python scripts/debug/compare_records.py --isaac_data recorded_data_2025-07-06_09-29-38.pkl --mujoco_data scripts/debug/go1_logs_20250713_061838 --output_dir visualization_results_0713
+# python scripts/debug/compare_records.py --isaac_data recorded_data_2025-07-15.pkl --mujoco_data scripts/debug/go1_logs_20250715_034941 --output_dir visualization_results_0715_2
